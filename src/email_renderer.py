@@ -179,13 +179,54 @@ hr {
   border-top: 1px solid #e4e6f8; text-align: center;
   color: #8090b8; font-size: 12px; line-height: 1.8;
 }
+
+/* ── 表格横向滚动容器 ── */
+.table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 14px 0;
+  border-radius: 8px;
+}
+.table-scroll table { margin: 0; min-width: 420px; }
+
+/* ── 移动端响应式 ── */
+@media (max-width: 640px) {
+  .wrapper {
+    margin: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .site-header {
+    padding: 20px 16px 16px;
+  }
+  .header-title { font-size: 20px; }
+  .header-headline { font-size: 13px; }
+  .body {
+    padding: 16px 14px;
+  }
+  .site-footer {
+    padding: 14px 16px;
+  }
+  h2 {
+    font-size: 14px;
+    padding: 8px 12px;
+    margin: 24px 0 12px;
+  }
+  h3 { font-size: 14px; }
+  h4 { font-size: 13px; }
+  p, li { font-size: 14px; }
+  th { font-size: 12px; padding: 8px 10px; }
+  td { font-size: 13px; padding: 7px 10px; }
+  blockquote { padding: 8px 12px; font-size: 13px; }
+  pre { font-size: 12px; padding: 12px; }
+}
 """
 
 _HTML_TEMPLATE = """<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 <title>{title}</title>
 <style>{style}</style>
 </head>
@@ -264,6 +305,9 @@ def _postprocess_html(html: str) -> str:
         r'<span class="score-tag">\1</span>',
         html,
     )
+    # 所有表格包裹横向滚动容器（移动端防溢出）
+    html = html.replace('<table>', '<div class="table-scroll"><table>')
+    html = html.replace('</table>', '</table></div>')
     return html
 
 
