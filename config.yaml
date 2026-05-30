@@ -1,0 +1,502 @@
+# 采集与分析配置。修改后无需重启，每次 run 都会重新读取。
+# v2 新增：prefilter / ranker / cluster 模块配置
+#
+# ─────────────────────────────────────────────────────────────────────
+# 📌 如何添加新博主 / 新源（不动代码）
+# ─────────────────────────────────────────────────────────────────────
+#   1. X/Twitter：在 rss.feeds 加一行
+#        - { name: "X/<handle>", url: "http://localhost:1200/twitter/user/<handle>" }
+#
+#   2. Bluesky：在 rss.feeds 加一行
+#        - { name: "BSky/<handle>", url: "https://bsky.app/profile/<handle.bsky.social>/rss" }
+#
+#   3. YouTube 频道：
+#        a) Data API 模式（含评论，消耗 quota）：在 youtube.channels 加一行 channel_id
+#        b) Atom feed 模式（无 API 兜底，无评论）：在 rss.feeds 加一行
+#             - { name: "YT/<显示名>", url: "https://www.youtube.com/feeds/videos.xml?channel_id=<UC...>" }
+#        c) 找 channel_id：
+#             curl -L -A "Mozilla/5.0" https://www.youtube.com/@<handle> | grep -oE 'channelId":"UC[A-Za-z0-9_-]{22}'
+#
+#   4. 微信公众号：在 https://github.com/ttttmr/Wechat2RSS/blob/master/list/all.md 找 feed id
+#        - { name: "WX/<名称>", url: "https://wechat2rss.xlab.app/feed/<id>.xml" }
+#
+#   5. Reddit：在 reddit.subreddits 加一行（如有特殊门槛在 min_upvotes_override 加）
+#
+#   6. Subreddit / 个人博客 / Newsletter：直接在 rss.feeds 加一行（任何标准 RSS/Atom 都可）
+#
+#   7. (可选) 给新源加权重：在 ranker.sub_source_boost 里加
+#        "X/<handle>": 1.5   # 1.0=正常 / 1.3=高质量 / 1.8=必读 / 0.7=降权
+#
+#   8. 修改完直接跑 `bash scripts/daily_run.sh`，无需重启服务、无需改代码
+# ─────────────────────────────────────────────────────────────────────
+
+keywords:
+  # ── 核心模型与技术 ──
+  - LLM
+  - GPT
+  - Claude
+  - agent
+  - RAG
+  - prompt engineering
+  - fine-tuning
+  - multimodal
+  - reasoning
+  - AI safety
+  - inference optimization
+
+  # ── 中文通用 ──
+  - 大模型
+  - 智能体
+  - Agent
+  - 推理
+  - 前沿
+  - 论文
+  - 优化
+  - 多模态
+  - 训练
+  - 对齐
+  - AI
+  - 实战
+
+  # ── 知识与推理系统 ──
+  - 知识图谱
+  - knowledge graph
+  - 知识增强
+
+  # ── 物理世界 AI ──
+  # "物理LLM" → 业内通用说法是具身智能 / 物理AI / embodied AI
+  - 具身智能
+  - 物理AI
+  - embodied
+  - Physical AI
+  - 世界模型
+  - world model
+  - 物理仿真
+
+  # ── 科学 AI ──
+  - AI for Science
+  - AI4Science
+  - 科学大模型
+  - 药物发现
+
+  # ── 工程与设计 AI ──
+  - 数字孪生
+  - digital twin
+  - 智能建造
+  - BIM
+  - 生成式设计
+  - generative design
+
+  # ── Skill 进化 / 能力涌现 ──
+  - skill evolution
+  - skill 进化
+  - 能力涌现
+  - emergent capabilities
+  - emergent ability
+  - 工具调用
+  - function calling
+  - tool use
+  - 技能学习
+  - agent capability
+  - self-improvement
+  - 自我进化
+  - 能力扩展
+
+reddit:
+  subreddits:
+    - LocalLLaMA
+    - MachineLearning
+    - singularity
+    - artificial
+    - OpenAI
+    - ClaudeAI
+    - LangChain
+    - LLMDevs
+    # Agent / 工程
+    - AI_Agents
+    - RAG
+    - aipromptprogramming
+    - StableDiffusion
+    # 专业领域（世界模型 / 知识图谱 / RL）
+    - reinforcementlearning
+    - KnowledgeGraph
+    - compsci
+  limit_per_sub: 25
+  time_filter: day      # hour | day | week | month
+  # 质量门槛：低于该 upvote 的帖子直接丢弃（PRAW + 匿名 JSON 两条路径都生效）
+  # 没配 Reddit API 时匿名 JSON 也带 upvote 数，门槛同样有效
+  min_upvotes: 30
+  # 大 sub 用更高门槛覆盖（避免热门 sub 灌水稀释 niche sub）
+  min_upvotes_override:
+    LocalLLaMA: 80
+    MachineLearning: 80
+    singularity: 200
+    OpenAI: 100
+
+youtube:
+  channels:
+    # AI 研究 / 论文解读
+    - UCZHmQk67mSJgfCCTn7xBfew  # Yannic Kilcher
+    - UCbfYPyITQ-7l4upoX8nvctg  # Two Minute Papers
+    - UCNJ1Ymd5yFuUPtn21xtRbbw  # AI Explained
+    - UCLB7AzTwc6VFZrBsO2ucBMg  # Robert Miles AI Safety
+    - UCj8shE7aIn4Ywawbo2FceCQ  # Aleksa Gordić - The AI Epiphany
+    # AI Agent / 工程实践
+    - UCawZsQWqfGSbCI5yjkdVkTA  # Matthew Berman
+    - UCDq7SjbgRKty5TgGafW8Clg  # Prompt Engineering
+    - UCrXSVX9a1mj8l0CMLwKgMVw  # AI Jason
+    - UCC-lyoTfSrcJzA1ab3APAgw  # LangChain
+    - UCWTyktbw5JYoSBduu8LsBgQ  # Mervin Praison
+    # 大模型 / 开源 / 技术
+    - UCXUPKJO5MZQN11PqgIvyuvQ  # Andrej Karpathy
+    - UCvKRFNawVcuz4b9ihUTApCg  # David Shapiro
+    - UC55ODQSvARtgSyc8ThfiepQ  # Sam Witteveen
+    - UCv83tO5cePwHMt1952IVVHw  # James Briggs
+    - UCX7Y2qWriXpqocG97SFW2OQ  # Jeremy Howard
+    - UCfzlCWGWYyIQ0aLC5w48gBQ  # sentdex
+    # AI 资讯 / 产品
+    - UCR9j1jqqB5Rse69wjUnbYwA  # All About AI
+    - UCHXa4OpASJEwrHrLeIzw7Yg  # Nicholas Renotte
+    - UC2UXDak6o7rBm23k3Vv5dww  # Tina Huang
+    - UCBp3w4DCEC64FZr4k9ROxig  # Weights & Biases
+    - UChpleBmo18P08aKCIgti38g  # Matt Wolfe — AI 工具周报
+    # 数学 / 教育
+    - UCYO_jab_esuFRV4b17AJtAw  # 3Blue1Brown — 数学直觉/神经网络可视化
+    - UCBa5G_ESCn8Yd4vw5U-gIcg  # Stanford Online — CS25 / CS153 等公开课
+  search_queries:
+    - "AI agents 2026"
+    - "LLM new research"
+    - "agentic workflows"
+    - "Claude agent"
+  max_results: 8           # 从 15 调到 8，省 ~50% quota，且砍掉长尾低质量视频
+  fetch_top_comments: 25
+  # velocity 过滤（views/hour），砍掉冷门长尾视频
+  # 30 是温和值：新视频 1 小时内 ≥30 views 才算"有人看"；冷门频道也能保留好内容
+  min_velocity: 30
+  # 累计播放量底线（兜底）：velocity 不达标但 view_count 很高也保留（适合优质旧视频）
+  min_views: 3000
+
+rss:
+  feeds:
+    # ─── 一手官方（最高权重） ───
+    - { name: "HuggingFace Blog",   url: "https://huggingface.co/blog/feed.xml" }
+    - { name: "OpenAI News",        url: "https://openai.com/news/rss.xml" }
+    - { name: "Anthropic News",     url: "https://www.anthropic.com/news/feed.xml" }
+    - { name: "Google AI Blog",     url: "https://blog.google/technology/ai/rss/" }
+    - { name: "DeepMind Blog",      url: "https://deepmind.google/blog/rss.xml" }
+
+    # ─── 个人博客（深度分析） ───
+    - { name: "Simon Willison",     url: "https://simonwillison.net/atom/everything/" }
+    - { name: "Sebastian Raschka",  url: "https://magazine.sebastianraschka.com/feed" }
+    - { name: "Lilian Weng",        url: "https://lilianweng.github.io/index.xml" }
+
+    # ─── 顶级 newsletter（=别人帮你预筛过的精华） ───
+    - { name: "Import AI",          url: "https://importai.substack.com/feed" }           # Jack Clark（Anthropic）
+    - { name: "Interconnects",      url: "https://www.interconnects.ai/feed" }            # Nathan Lambert（AI2）
+    - { name: "Latent Space",       url: "https://www.latent.space/feed" }                # swyx
+    - { name: "AINews",             url: "https://buttondown.email/ainews/rss" }          # smol AI 每日聚合（Reddit+X+Discord）
+
+    # ─── 代码热度 ───
+    - { name: "GitHub Trending Py", url: "https://mshibanami.github.io/GitHubTrendingRSS/daily/python.xml" }
+    # arXiv 已禁用：当前项目不覆盖论文场景，且单源占总量 ~40% 拉高噪音
+    # 如需恢复，取消下面任一行注释即可：
+    # - { name: "arXiv cs.AI",        url: "http://export.arxiv.org/rss/cs.AI" }
+    # - { name: "arXiv cs.CL",        url: "http://export.arxiv.org/rss/cs.CL" }
+    # - { name: "arXiv cs.LG",        url: "http://export.arxiv.org/rss/cs.LG" }
+
+    # ─── Twitter 替代：Bluesky 镜像（部分大佬同步 X 内容到 Bluesky） ───
+    - { name: "BSky/simonw",        url: "https://bsky.app/profile/simonw.bsky.social/rss" }
+    - { name: "BSky/dwarkesh",      url: "https://bsky.app/profile/dwarkesh.bsky.social/rss" }
+    - { name: "BSky/swyx",          url: "https://bsky.app/profile/swyx.io/rss" }
+    # 想加更多 Bluesky 账号：URL 格式 https://bsky.app/profile/<handle>/rss
+
+    # ─── X/Twitter via 自建 RSSHub（需要本机跑 Docker：scripts/daily_run.sh 会自动启停） ───
+    # Docker 没起时 rss.py 会快速跳过这些 localhost feed，不会阻塞 pipeline。
+    # 模板（添加新博主）：- { name: "X/<handle>", url: "http://localhost:1200/twitter/user/<handle>" }
+    - { name: "X/karpathy",       url: "http://localhost:1200/twitter/user/karpathy" }
+    - { name: "X/sama",           url: "http://localhost:1200/twitter/user/sama" }
+    - { name: "X/ylecun",         url: "http://localhost:1200/twitter/user/ylecun" }
+    - { name: "X/AnthropicAI",    url: "http://localhost:1200/twitter/user/AnthropicAI" }
+    - { name: "X/OpenAI",         url: "http://localhost:1200/twitter/user/OpenAI" }
+    - { name: "X/GoogleDeepMind", url: "http://localhost:1200/twitter/user/GoogleDeepMind" }
+    - { name: "X/jeremyphoward",  url: "http://localhost:1200/twitter/user/jeremyphoward" }
+    - { name: "X/_jasonwei",      url: "http://localhost:1200/twitter/user/_jasonwei" }
+    - { name: "X/_akhaliq",       url: "http://localhost:1200/twitter/user/_akhaliq" }       # AK，搬运 HF Papers
+    - { name: "X/hwchase17",      url: "http://localhost:1200/twitter/user/hwchase17" }      # LangChain CEO
+    # 新增（2026-05）：研究/产品大佬
+    - { name: "X/lilianweng",     url: "http://localhost:1200/twitter/user/lilianweng" }     # Lilian Weng（前 OpenAI 安全）
+    - { name: "X/DrJimFan",       url: "http://localhost:1200/twitter/user/DrJimFan" }       # Jim Fan（NVIDIA AI Agents）
+    - { name: "X/fchollet",       url: "http://localhost:1200/twitter/user/fchollet" }       # François Chollet（Keras 作者）
+    - { name: "X/demishassabis",  url: "http://localhost:1200/twitter/user/demishassabis" }  # Demis Hassabis（DeepMind CEO）
+    - { name: "X/emollick",       url: "http://localhost:1200/twitter/user/emollick" }       # Ethan Mollick（沃顿，AI 教育推广）
+    - { name: "X/rasbt",          url: "http://localhost:1200/twitter/user/rasbt" }          # Sebastian Raschka
+    - { name: "X/MelMitchell1",   url: "http://localhost:1200/twitter/user/MelMitchell1" }   # Melanie Mitchell（Santa Fe）
+    # 新增第 2 批（官号 + 研究者 + 论文搬运）
+    - { name: "X/xai",            url: "http://localhost:1200/twitter/user/xai" }            # xAI / Grok 官号
+    - { name: "X/MistralAI",      url: "http://localhost:1200/twitter/user/MistralAI" }      # Mistral 官号
+    - { name: "X/deepseek_ai",    url: "http://localhost:1200/twitter/user/deepseek_ai" }    # DeepSeek 官号
+    - { name: "X/polynoamial",    url: "http://localhost:1200/twitter/user/polynoamial" }    # Noam Shazeer（Transformer 共同作者）
+    - { name: "X/agihippo",       url: "http://localhost:1200/twitter/user/agihippo" }       # Sasha Rush（Cornell / HF）
+    - { name: "X/lmthang",        url: "http://localhost:1200/twitter/user/lmthang" }        # Thang Luong（DeepMind Gemini）
+    - { name: "X/iScienceLuvr",   url: "http://localhost:1200/twitter/user/iScienceLuvr" }   # Tanishq Abraham（HF / Stability）
+    - { name: "X/omarsar0",       url: "http://localhost:1200/twitter/user/omarsar0" }       # Elvis Saravia（DAIR.AI）
+    - { name: "X/Yampeleg",       url: "http://localhost:1200/twitter/user/Yampeleg" }       # Yam Peleg（GPU/模型对比八卦）
+    - { name: "X/Suhail",         url: "http://localhost:1200/twitter/user/Suhail" }         # Suhail Doshi（Playground）
+    # AI for Science / 物理AI 方向
+    - { name: "X/drfeifei",       url: "http://localhost:1200/twitter/user/drfeifei" }       # Fei-Fei Li（Stanford AI / 具身智能）
+    - { name: "X/jeffdean",       url: "http://localhost:1200/twitter/user/jeffdean" }       # Jeff Dean（Google AI）
+    - { name: "X/tegmark",        url: "http://localhost:1200/twitter/user/tegmark" }        # Max Tegmark（AI安全 / 物理AI）
+
+    # ─── 专业研究博客 / 机构 RSS（世界模型 / 知识图谱 / AI for Science / 数字孪生）───
+    # 世界模型 / 深度研究分析
+    - { name: "The Gradient",     url: "https://thegradient.pub/rss/" }
+    - { name: "Microsoft Research Blog", url: "https://www.microsoft.com/en-us/research/blog/feed/" }
+    # 知识图谱
+    - { name: "Neo4j Blog",       url: "https://neo4j.com/blog/rss/" }
+    # AI for Science / 学术前沿
+    - { name: "MIT News AI",      url: "https://news.mit.edu/rss/topic/artificial-intelligence2" }
+    # 物理AI / 数字孪生 / 具身智能（NVIDIA Omniverse 等）
+    - { name: "NVIDIA Dev Blog",  url: "https://developer.nvidia.com/blog/feed/" }
+    # AI 研究趋势分析
+    - { name: "Towards AI",       url: "https://pub.towardsai.net/feed" }
+    - { name: "AI Impacts",       url: "https://aiimpacts.org/feed/" }
+
+    # ─── 中文 AI 公众号 via wechat2rss.xlab.app（免费公益服务，24h 更新承诺） ───
+    # 项目源码：https://github.com/ttttmr/Wechat2RSS
+    # 公众号完整列表：https://github.com/ttttmr/Wechat2RSS/blob/master/list/all.md
+    - { name: "WX/机器之心",        url: "https://wechat2rss.xlab.app/feed/51e92aad2728acdd1fda7314be32b16639353001.xml" }
+    - { name: "WX/量子位",          url: "https://wechat2rss.xlab.app/feed/7131b577c61365cb47e81000738c10d872685908.xml" }
+    - { name: "WX/新智元",          url: "https://wechat2rss.xlab.app/feed/ede30346413ea70dbef5d485ea5cbb95cca446e7.xml" }
+    - { name: "WX/PaperWeekly",     url: "https://wechat2rss.xlab.app/feed/3be891c2f4e526629ab055a297cc2cd6c1f0a563.xml" }
+    - { name: "WX/夕小瑶科技说",     url: "https://wechat2rss.xlab.app/feed/a1cd365aa14ed7d64cabfc8aa086da40ecaba34d.xml" }
+    - { name: "WX/我爱计算机视觉",   url: "https://wechat2rss.xlab.app/feed/b81ffcfff1107b5265cd7e39de610dc7ca72caf4.xml" }
+    - { name: "WX/Datawhale",       url: "https://wechat2rss.xlab.app/feed/4d620d988cb21cfeefd2263207221f0dc70df9ff.xml" }
+    - { name: "WX/集智俱乐部",      url: "https://wechat2rss.xlab.app/feed/8540570d27c0bfe0a219173cf1ace83ae79445cb.xml" }
+    - { name: "WX/极客公园",        url: "https://wechat2rss.xlab.app/feed/1a5aec98e71c707c8ca092bc2c255b9d4bac477d.xml" }
+
+    # ─── 扩充公众号 via decemberpei.cyou（独立 WeChat RSS 镜像，已验证可用） ───
+    - { name: "WX/虎嗅APP",        url: "https://decemberpei.cyou/rssbox/wechat-huxiuapp.xml" }
+    - { name: "WX/InfoQ",          url: "https://decemberpei.cyou/rssbox/wechat-infoq.xml" }
+    - { name: "WX/晚点LatePost",   url: "https://decemberpei.cyou/rssbox/wechat-wandian.xml" }
+    - { name: "WX/海外独角兽",      url: "https://decemberpei.cyou/rssbox/wechat-haiwaidujiaoshou.xml" }
+    - { name: "WX/FounderPark",    url: "https://decemberpei.cyou/rssbox/wechat-founderpark.xml" }
+    - { name: "WX/AI前线",         url: "https://decemberpei.cyou/rssbox/wechat-aiqianxian.xml" }
+    - { name: "WX/投资实习所",      url: "https://decemberpei.cyou/rssbox/wechat-touzishixisuo.xml" }
+
+    # ─── AI 博主公众号 via werss.app（MP_WXS ID，已验证可用） ───
+    - { name: "WX/数字生命卡兹克",   url: "https://werss.app/feed/MP_WXS_3223096120.rss" }
+    - { name: "WX/AGI Hunt",        url: "https://werss.app/feed/MP_WXS_3087832081.rss" }
+    - { name: "WX/赛博禅心",        url: "https://werss.app/feed/MP_WXS_3934419561.rss" }
+    - { name: "WX/袋鼠帝AI客栈",    url: "https://werss.app/feed/MP_WXS_3903186594.rss" }
+    - { name: "WX/AI信息Gap",       url: "https://werss.app/feed/MP_WXS_3903631794.rss" }
+
+    # ─── 科技媒体官网直连 RSS ───
+    - { name: "WX/智东西",         url: "https://zhidx.com/rss.xml" }             # 智东西官网 RSS
+    - { name: "WX/IT之家",         url: "https://www.ithome.com/rss/" }            # IT之家官网 RSS
+
+    # 中文个人博客（非微信生态）
+    - { name: "宝玉的分享",         url: "https://baoyu.io/feed.xml" }              # AI 工程深度 / 一手翻译
+    - { name: "阮一峰",             url: "http://www.ruanyifeng.com/blog/atom.xml" } # 周报含 AI
+
+    # ─── YouTube 频道公开 Atom feed（无需 API key，每个频道只给最近 15 条视频元信息，没有评论） ───
+    # 模板（添加新频道）：- { name: "YT/<显示名>", url: "https://www.youtube.com/feeds/videos.xml?channel_id=<UC...>" }
+    - { name: "YT/3Blue1Brown",     url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCYO_jab_esuFRV4b17AJtAw" }
+    - { name: "YT/YannicKilcher",   url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCZHmQk67mSJgfCCTn7xBfew" }
+    - { name: "YT/TwoMinutePapers", url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCbfYPyITQ-7l4upoX8nvctg" }
+    - { name: "YT/AIExplained",     url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCNJ1Ymd5yFuUPtn21xtRbbw" }
+    - { name: "YT/LexFridman",      url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCSHZKyawb77ixDdsGog4iWA" }
+    - { name: "YT/AndrejKarpathy",  url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCXUPKJO5MZQN11PqgIvyuvQ" }
+    - { name: "YT/MattWolfe",       url: "https://www.youtube.com/feeds/videos.xml?channel_id=UChpleBmo18P08aKCIgti38g" }
+    - { name: "YT/StanfordOnline",  url: "https://www.youtube.com/feeds/videos.xml?channel_id=UCBa5G_ESCn8Yd4vw5U-gIcg" }
+
+# wechat 配置块已删除 —— 微信公众号现在走 rss.feeds 里的 wechat2rss.xlab.app（按账号订阅，24h 更新）
+# 旧搜狗模式代码 src/collectors/wechat.py 暂保留但不再被 main.py 加载
+
+twitter:
+  enabled: false
+  users:
+    - sama
+    - karpathy
+    - GoogleDeepMind
+    - AnthropicAI
+    - ylecun
+  query: "(AI OR LLM OR agent) -is:retweet lang:en"
+  max_results: 50
+
+# ─── v2 新增模块 ───
+
+prefilter:
+  min_heat: 0             # 热度阈值（0=不过滤，微信公众号无热度数据）
+  max_age_hours: 168       # 7天窗口（基于采集时间 fetched_at）
+
+ranker:
+  keyword_weights:
+    智能体: 3.0
+    Agent: 3.0
+    agent: 3.0
+    大模型: 2.5
+    推理: 2.5
+    benchmark: 2.5
+    "reasoning model": 3.0
+    "open source": 2.0
+    multimodal: 2.0
+    "fine-tuning": 2.0
+    RAG: 2.0
+    "prompt engineering": 1.5
+    safety: 2.0
+    "inference optimization": 2.0
+    "training trick": 2.5
+    evaluation: 2.0
+    workflow: 1.5
+    voice: 1.5
+    memory: 2.0
+    "tool use": 2.0
+    "Claude Code": 2.5
+    "DeepSeek": 2.5
+  top_k: 200               # 最多保留 N 条进入 LLM 分析
+  top_percent: 0           # 或按百分比保留（0=不启用）
+  # 跨源共振加权（同一话题在多个不同来源出现 = 真热点 → 提分）
+  resonance_min_sources: 3      # 一个词需要在 ≥N 个不同 sub_source 出现才算"共振词"
+  resonance_bonus_per_hit: 1.5  # 命中一个共振词的加分
+  resonance_max_bonus: 8.0      # 单 item 共振加分上限（防止刷分）
+  source_boost:
+    reddit: 1.2
+    youtube: 1.1
+    wechat: 1.2             # 中文一手资讯，权重与 Reddit 持平
+    rss: 1.0
+  # 按 sub_source 名加权（覆盖 source_boost，更精细的"渠道权重"）
+  # 一手官方 / 顶级 newsletter / Bluesky 大佬给高权重；arXiv 全量给低权重避免噪音
+  sub_source_boost:
+    "OpenAI News": 1.5
+    "Anthropic News": 1.5
+    "DeepMind Blog": 1.4
+    "Google AI Blog": 1.3
+    "HuggingFace Blog": 1.3
+    "Import AI": 1.4
+    "Interconnects": 1.4
+    "AINews": 1.5            # smol AI 已做一次精筛，等于免费 LLM 标注
+    "Latent Space": 1.3
+    "Simon Willison": 1.3
+    "Sebastian Raschka": 1.2
+    "Lilian Weng": 1.2
+    "BSky/simonw": 1.3
+    "BSky/dwarkesh": 1.3
+    "BSky/swyx": 1.2
+    "GitHub Trending Py": 1.2
+    "arXiv cs.AI": 0.7        # 量大但噪音多，降权
+    # X/Twitter via RSSHub（核心账号高权重）
+    "X/karpathy": 2.0
+    "X/sama": 1.8
+    "X/ylecun": 1.6
+    "X/AnthropicAI": 1.8
+    "X/OpenAI": 1.6
+    "X/GoogleDeepMind": 1.6
+    "X/_akhaliq": 1.5         # AK，HF Papers 当日精选
+    "X/_jasonwei": 1.4
+    "X/hwchase17": 1.3
+    "X/jeremyphoward": 1.3
+    # 2026-05 新增
+    "X/demishassabis": 1.8    # DeepMind CEO
+    "X/lilianweng": 1.6
+    "X/fchollet": 1.6
+    "X/DrJimFan": 1.5         # NVIDIA AI Agents 主推
+    "X/rasbt": 1.5
+    "X/emollick": 1.4
+    "X/MelMitchell1": 1.3
+    # 2026-05 第 2 批
+    "X/deepseek_ai": 1.8      # 国产顶级模型，发布即新闻
+    "X/MistralAI": 1.7        # 欧洲开源旗手
+    "X/xai": 1.6              # Elon/Grok 官号
+    "X/polynoamial": 1.6      # Noam Shazeer，Transformer 共同作者
+    "X/agihippo": 1.5         # Sasha Rush
+    "X/lmthang": 1.5          # Gemini 联合负责人
+    "X/iScienceLuvr": 1.4     # HF Papers 每日精选搬运
+    "X/omarsar0": 1.4         # DAIR.AI
+    "X/Suhail": 1.3
+    "X/Yampeleg": 1.2         # 八卦多但有信息差价值
+    # AI for Science / 物理AI 方向
+    "X/drfeifei": 1.6          # Fei-Fei Li，具身智能 / AI for Science
+    "X/jeffdean": 1.6          # Jeff Dean，AI基础设施 / 科学AI
+    "X/tegmark": 1.4           # Max Tegmark，物理AI / 安全
+    # YouTube Atom 频道（部分）
+    "YT/AndrejKarpathy": 1.8  # 出新视频就是教科书级
+    "YT/MattWolfe": 1.2
+    "YT/StanfordOnline": 1.3
+    "YT/3Blue1Brown": 1.4
+    # 中文一手媒体（个人博客）
+    "宝玉的分享": 1.5         # 一手翻译，质量高
+    "阮一峰": 1.1             # 内容杂，含 AI 但不是主
+    # 专业研究博客 / 机构
+    "The Gradient": 1.6        # 深度 AI 研究分析
+    "Microsoft Research Blog": 1.5
+    "Neo4j Blog": 1.3          # 知识图谱
+    "MIT News AI": 1.4         # AI for Science
+    "NVIDIA Dev Blog": 1.4     # 物理AI / 数字孪生
+    "Towards AI": 1.2
+    "AI Impacts": 1.3
+    # 微信公众号 via wechat2rss（24h 内更新，按账号订阅）
+    "WX/机器之心": 1.5
+    "WX/量子位": 1.5
+    "WX/新智元": 1.4
+    "WX/PaperWeekly": 1.5      # 论文解读专业户
+    "WX/夕小瑶科技说": 1.4
+    "WX/我爱计算机视觉": 1.4
+    "WX/Datawhale": 1.3
+    "WX/集智俱乐部": 1.2       # 偏科学前沿，AI 占比一般
+    "WX/极客公园": 1.3
+    # 扩充公众号（decemberpei.cyou 镜像 + 官网 RSS）
+    "WX/虎嗅APP": 1.3          # 科技商业综合
+    "WX/InfoQ": 1.3            # 开发者/技术深度
+    "WX/晚点LatePost": 1.4     # 深度科技商业报道
+    "WX/海外独角兽": 1.3        # 海外 AI 创业动态
+    "WX/FounderPark": 1.3      # 创业/产品视角
+    "WX/AI前线": 1.3           # AI 行业资讯
+    "WX/投资实习所": 1.2        # 投资/商业视角
+    "WX/智东西": 1.3           # AI 硬件/落地
+    "WX/IT之家": 1.1           # 科技资讯，覆盖面广
+    # AI 博主公众号（werss.app）
+    "WX/数字生命卡兹克": 1.4   # AI 前沿动态 / 博主
+    "WX/AGI Hunt": 1.4         # AGI 追踪
+    "WX/赛博禅心": 1.3         # AI 思考 / 哲学视角
+    "WX/袋鼠帝AI客栈": 1.3     # AI 工具 / 实践
+    "WX/AI信息Gap": 1.3        # AI 资讯聚合
+  # 按作者名加权（命中即对最终分加倍）—— 作者权威性是最强信号之一
+  author_weights:
+    karpathy: 2.0
+    "Andrej Karpathy": 2.0
+    sama: 1.8
+    "Sam Altman": 1.8
+    ylecun: 1.6
+    "Yann LeCun": 1.6
+    GoogleDeepMind: 1.6
+    AnthropicAI: 1.8
+    OpenAI: 1.6
+    simonw: 1.5
+    "Simon Willison": 1.5
+    "Sebastian Raschka": 1.5
+    "Lilian Weng": 1.5
+    "Jack Clark": 1.5
+    "Nathan Lambert": 1.5
+    swyx: 1.3
+    dwarkesh: 1.3
+    "Andrew Ng": 1.6
+
+cluster:
+  enabled: true
+  # 实测：qwen3.6-plus 是 reasoning model，处理 16k+ tokens 大输入会 timeout（>4 分钟）
+  # cluster/insight 这种"批量分析+JSON输出"用 qwen-max-latest 更稳定（实测 36s 完成）
+  model: qwen-max-latest
+  num_topics: 5
+
+analyzer:
+  # analyzer 是单条评分（每个 prompt 小），reasoning model 能提升打分质量
+  model: qwen3.6-plus
+  min_score: 4              # 降低门槛提升入选率（~80%+），让更多内容进入日报
+  batch: 100                # 每轮 LLM 分析条数
+  workers: 10               # 并发 API 调用数（DashScope 标准账户建议 5-10）
+
+insight:
+  enabled: true
+  # 同 cluster，用 qwen-max-latest 处理大输入更稳
+  model: qwen-max-latest
+  top_n: 20                  # 从 top N 条中提炼趋势

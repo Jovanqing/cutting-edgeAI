@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/python -m src.main collect)",
+      "Bash(.venv/bin/python -m src.main analyze)",
+      "Bash(.venv/bin/python -m src.main digest)",
+      "Bash(.venv/bin/python -m src.main run --dry)",
+      "Bash(.venv/bin/python -m src.main run)",
+      "Bash(.venv/bin/python -c ' *)",
+      "Bash(python3 -c ' *)",
+      "Bash(.venv/bin/pip list *)",
+      "Bash(python3 -c \"from bs4 import BeautifulSoup; print\\('bs4 available'\\)\")",
+      "Bash(.venv/bin/pip install *)"
+    ]
+  }
+}

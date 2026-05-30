@@ -1,0 +1,9 @@
+openai>=1.40
+praw>=7.7
+google-api-python-client>=2.100
+feedparser>=6.0
+PyYAML>=6.0
+python-dotenv>=1.0
+requests>=2.31
+tweepy>=4.14
+rich>=13.0
