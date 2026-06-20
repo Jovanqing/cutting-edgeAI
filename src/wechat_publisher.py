@@ -332,7 +332,7 @@ def generate_wechat_article(
         model=model,
         max_tokens=4000,
         temperature=0.55,
-        timeout=120,
+        timeout=240,
         messages=[{"role": "user", "content": prompt}],
         response_format={"type": "json_object"},
     )

@@ -81,7 +81,7 @@ class TrendExpander:
                 model=self.model,
                 max_tokens=800,
                 temperature=0.4,
-                timeout=60,
+                timeout=150,
                 messages=[{"role": "user", "content": prompt}],
                 response_format={"type": "json_object"},
             )

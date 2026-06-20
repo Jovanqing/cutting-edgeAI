@@ -60,7 +60,7 @@ class Clusterer:
                 # 200 items × 5 themes × ~50 indices/theme 需要 1500-2500 tokens 输出
                 max_tokens=3000,
                 temperature=0.2,
-                timeout=120,  # 大请求 60-90s 正常，120s 容错；防止 reasoning model 卡 10 分钟
+                timeout=240,  # qwen3.7-max 推理型，大输入慢；240s 容错，仍防 reasoning model 无限卡
                 messages=[
                     {"role": "user", "content": CLUSTER_PROMPT.format(articles=articles_text)},
                 ],
