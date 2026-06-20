@@ -108,7 +108,7 @@ def cmd_analyze() -> int:
     batch_size = a_cfg.get("batch", 100)
     total = 0
 
-    def _score_one(it: dict) -> tuple[dict, dict | None, str | None]:
+    def _score_one(it):
         """Return (item, result, error_msg)."""
         try:
             a = Analyzer(model=a_cfg.get("model", "qwen3.7-max"))
