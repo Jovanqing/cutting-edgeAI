@@ -483,20 +483,20 @@ ranker:
 
 cluster:
   enabled: true
-  # 实测：qwen3.6-plus 是 reasoning model，处理 16k+ tokens 大输入会 timeout（>4 分钟）
-  # cluster/insight 这种"批量分析+JSON输出"用 qwen-max-latest 更稳定（实测 36s 完成）
-  model: qwen-max-latest
+  # 实测：qwen3.7-plus 是 reasoning model，处理 16k+ tokens 大输入会 timeout（>4 分钟）
+  # cluster/insight 这种"批量分析+JSON输出"用 qwen3.7-max 更稳定（实测 36s 完成）
+  model: qwen3.7-max
   num_topics: 5
 
 analyzer:
   # analyzer 是单条评分（每个 prompt 小），reasoning model 能提升打分质量
-  model: qwen3.6-plus
+  model: qwen3.7-plus
   min_score: 4              # 降低门槛提升入选率（~80%+），让更多内容进入日报
   batch: 100                # 每轮 LLM 分析条数
   workers: 10               # 并发 API 调用数（DashScope 标准账户建议 5-10）
 
 insight:
   enabled: true
-  # 同 cluster，用 qwen-max-latest 处理大输入更稳
-  model: qwen-max-latest
+  # 同 cluster，用 qwen3.7-max 处理大输入更稳
+  model: qwen3.7-max
   top_n: 20                  # 从 top N 条中提炼趋势

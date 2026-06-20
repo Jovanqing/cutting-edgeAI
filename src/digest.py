@@ -867,7 +867,7 @@ def _generate_research_ideas(items: list[dict]) -> Optional[str]:
 
     try:
         resp = client.chat.completions.create(
-            model="qwen-max-latest",
+            model="qwen3.7-max",
             max_tokens=1200,
             temperature=0.6,
             timeout=60,

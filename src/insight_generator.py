@@ -41,7 +41,7 @@ class InsightGenerator:
         api_key = os.getenv("LLM_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
         base_url = os.getenv("LLM_BASE_URL") or DEFAULT_BASE_URL
         self.client = OpenAI(api_key=api_key, base_url=base_url)
-        self.model = cfg.get("model", "qwen-max-latest")
+        self.model = cfg.get("model", "qwen3.7-max")
         self.enabled = bool(cfg.get("enabled", True))
         self.top_n = int(cfg.get("top_n", 20))
 

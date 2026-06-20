@@ -49,7 +49,7 @@ TREND_PROMPT = """你是顶级 AI 商业日报分析师（对标 The Information
 
 
 class TrendExpander:
-    def __init__(self, model: str = "qwen-max-latest"):
+    def __init__(self, model: str = "qwen3.7-max"):
         api_key = os.getenv("LLM_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
         base_url = os.getenv("LLM_BASE_URL") or DEFAULT_BASE_URL
         self.client = OpenAI(api_key=api_key, base_url=base_url)

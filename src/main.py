@@ -111,7 +111,7 @@ def cmd_analyze() -> int:
     def _score_one(it: dict) -> tuple[dict, dict | None, str | None]:
         """Return (item, result, error_msg)."""
         try:
-            a = Analyzer(model=a_cfg.get("model", "qwen-max-latest"))
+            a = Analyzer(model=a_cfg.get("model", "qwen3.7-max"))
             res = a.score(it)
             return it, res, None
         except Exception as e:

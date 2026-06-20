@@ -4,7 +4,7 @@
 输出：dict {lead, background, key_facts, impact, reactions, what_to_watch}
 
 设计：
-- 用 qwen-max-latest（实测稳定），不要 reasoning model（大 prompt timeout）
+- 用 qwen3.7-max（实测稳定），不要 reasoning model（大 prompt timeout）
 - 限制 input ≤ 4k tokens，output 800-1200 tokens
 - 错误时 fallback 到原 item 的现有字段（不 break pipeline）
 """
@@ -51,7 +51,7 @@ Why it matters: {why_matters}
 
 
 class StoryWriter:
-    def __init__(self, model: str = "qwen-max-latest"):
+    def __init__(self, model: str = "qwen3.7-max"):
         api_key = os.getenv("LLM_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
         base_url = os.getenv("LLM_BASE_URL") or DEFAULT_BASE_URL
         self.client = OpenAI(api_key=api_key, base_url=base_url)

@@ -100,7 +100,7 @@ def _aggregate_with_llm(digests: list[tuple[str, str]], period_name: str, days: 
     )
     try:
         resp = client.chat.completions.create(
-            model="qwen-max-latest",
+            model="qwen3.7-max",
             max_tokens=3500,
             temperature=0.3,
             timeout=120,

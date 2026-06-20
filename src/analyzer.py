@@ -61,7 +61,7 @@ IMPORTANT:
 
 
 class Analyzer:
-    def __init__(self, model: str = "qwen-max-latest"):
+    def __init__(self, model: str = "qwen3.7-max"):
         api_key = os.getenv("LLM_API_KEY") or os.getenv("DASHSCOPE_API_KEY")
         base_url = os.getenv("LLM_BASE_URL") or DEFAULT_BASE_URL
         if not api_key:

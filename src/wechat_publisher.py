@@ -265,7 +265,7 @@ def _build_article_md(article: dict, date_str: str = "") -> str:
 def generate_wechat_article(
     min_score: int = 6,
     hours: int = 48,
-    model: str = "qwen-max-latest",
+    model: str = "qwen3.7-max",
 ) -> tuple[Path, Path]:
     """生成今日微信公众号文章。
 
