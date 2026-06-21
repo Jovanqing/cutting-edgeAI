@@ -105,28 +105,35 @@ class StoryWriter:
             related=related_text,
         )
 
-        try:
-            resp = self.client.chat.completions.create(
-                model=self.model,
-                max_tokens=1500,
-                temperature=0.4,
-                timeout=60,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-            )
-            raw = (resp.choices[0].message.content or "").strip()
-            m = re.search(r"\{.*\}", raw, re.DOTALL)
-            if m:
-                raw = m.group(0)
-            result = json.loads(raw)
-            # 如果有真实推文引用，覆盖 LLM 编的 reactions
-            if tweet_quotes:
-                result["real_quotes"] = tweet_quotes[:5]
-            return result
-        except Exception as e:
-            print(f"[story_writer] failed for '{title[:40]}': {type(e).__name__}: {e}",
-                  file=sys.stderr)
-            return None
+        # qwen3.7-max 是推理型模型，长文偶发超时；超时/报错重试一次
+        last_err = None
+        for attempt in range(2):
+            try:
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    max_tokens=1500,
+                    temperature=0.4,
+                    timeout=180,
+                    messages=[{"role": "user", "content": prompt}],
+                    response_format={"type": "json_object"},
+                )
+                raw = (resp.choices[0].message.content or "").strip()
+                m = re.search(r"\{.*\}", raw, re.DOTALL)
+                if m:
+                    raw = m.group(0)
+                result = json.loads(raw)
+                # 如果有真实推文引用，覆盖 LLM 编的 reactions
+                if tweet_quotes:
+                    result["real_quotes"] = tweet_quotes[:5]
+                return result
+            except Exception as e:
+                last_err = e
+                if attempt == 0:
+                    print(f"[story_writer] retry '{title[:40]}': {type(e).__name__}",
+                          file=sys.stderr)
+        print(f"[story_writer] failed for '{title[:40]}': {type(last_err).__name__}: {last_err}",
+              file=sys.stderr)
+        return None
 
 
 def find_related_tweets(main_item: dict, all_items: list[dict], k: int = 5) -> list[dict]:

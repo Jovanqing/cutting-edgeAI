@@ -76,24 +76,28 @@ class TrendExpander:
             related=related_text,
         )
 
-        try:
-            resp = self.client.chat.completions.create(
-                model=self.model,
-                max_tokens=800,
-                temperature=0.4,
-                timeout=150,
-                messages=[{"role": "user", "content": prompt}],
-                response_format={"type": "json_object"},
-            )
-            raw = (resp.choices[0].message.content or "").strip()
-            m = re.search(r"\{.*\}", raw, re.DOTALL)
-            if m:
-                raw = m.group(0)
-            return json.loads(raw)
-        except Exception as e:
-            print(f"[trend_expander] failed for '{title}': {type(e).__name__}: {e}",
-                  file=sys.stderr)
-            return None
+        # qwen3.7-max 偶发超时，重试一次
+        last_err = None
+        for attempt in range(2):
+            try:
+                resp = self.client.chat.completions.create(
+                    model=self.model,
+                    max_tokens=800,
+                    temperature=0.4,
+                    timeout=150,
+                    messages=[{"role": "user", "content": prompt}],
+                    response_format={"type": "json_object"},
+                )
+                raw = (resp.choices[0].message.content or "").strip()
+                m = re.search(r"\{.*\}", raw, re.DOTALL)
+                if m:
+                    raw = m.group(0)
+                return json.loads(raw)
+            except Exception as e:
+                last_err = e
+        print(f"[trend_expander] failed for '{title}': {type(last_err).__name__}: {last_err}",
+              file=sys.stderr)
+        return None
 
     def expand_all(self, trends: list[dict], items: list[dict]) -> list[dict]:
         """并发扩展所有 trend。把 deep_analysis 等字段 merge 到原 trend dict 里。"""

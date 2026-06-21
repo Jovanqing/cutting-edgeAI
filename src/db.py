@@ -5,6 +5,7 @@ Migration runs automatically on init().
 """
 import sqlite3
 from contextlib import contextmanager
+from datetime import datetime
 from pathlib import Path
 
 DB_PATH = Path(__file__).parent.parent / "data" / "inspiration.db"
@@ -85,6 +86,11 @@ def init():
 
 
 def upsert_item(item: dict):
+    # 显式写入本地时间，避免 SQLite CURRENT_TIMESTAMP（UTC）与
+    # Python date.today()（本地）跨午夜错位。统一全系统用本地时区。
+    if not item.get("fetched_at"):
+        item = dict(item)
+        item["fetched_at"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     keys = list(item.keys())
     placeholders = ",".join("?" * len(keys))
     cols = ",".join(keys)
@@ -174,7 +180,7 @@ def mark_skipped(item_id: str):
 
 def top_recent(min_score: int = 5, hours: int = 24, limit: int = 50,
                today_only: bool = False) -> list[dict]:
-    since = "date('now')" if today_only else f"datetime('now', '-{hours} hours')"
+    since = "date('now', 'localtime')" if today_only else f"datetime('now', 'localtime', '-{hours} hours')"
     with conn() as c:
         rows = c.execute(
             f"""
@@ -191,7 +197,7 @@ def top_recent(min_score: int = 5, hours: int = 24, limit: int = 50,
 
 def top_by_cluster(cluster_id: str, min_score: int = 5, hours: int = 24,
                    limit: int = 30, today_only: bool = False) -> list[dict]:
-    since = "date('now')" if today_only else f"datetime('now', '-{hours} hours')"
+    since = "date('now', 'localtime')" if today_only else f"datetime('now', 'localtime', '-{hours} hours')"
     with conn() as c:
         rows = c.execute(
             f"""
@@ -208,7 +214,7 @@ def top_by_cluster(cluster_id: str, min_score: int = 5, hours: int = 24,
 
 
 def get_clusters(hours: int = 24, today_only: bool = False) -> list[dict]:
-    since = "date('now')" if today_only else f"datetime('now', '-{hours} hours')"
+    since = "date('now', 'localtime')" if today_only else f"datetime('now', 'localtime', '-{hours} hours')"
     with conn() as c:
         rows = c.execute(
             f"""
@@ -275,7 +281,7 @@ def top_stratified(min_score: int = 5, hours: int = 24,
     """
     if not quotas:
         quotas = {"reddit": 15, "youtube": 5, "rss": 30}
-    since = "date('now')" if today_only else f"datetime('now', '-{hours} hours')"
+    since = "date('now', 'localtime')" if today_only else f"datetime('now', 'localtime', '-{hours} hours')"
     results = []
     seen = set()
     with conn() as c:

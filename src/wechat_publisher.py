@@ -328,15 +328,27 @@ def generate_wechat_article(
     )
 
     print(f"[wechat] writing article on: {title[:50]}...")
-    resp = client.chat.completions.create(
-        model=model,
-        max_tokens=4000,
-        temperature=0.55,
-        timeout=240,
-        messages=[{"role": "user", "content": prompt}],
-        response_format={"type": "json_object"},
-    )
-    raw = (resp.choices[0].message.content or "").strip()
+    # qwen3.7-max 长文（2000字）偶发超时，重试一次
+    last_err = None
+    raw = None
+    for attempt in range(2):
+        try:
+            resp = client.chat.completions.create(
+                model=model,
+                max_tokens=4000,
+                temperature=0.55,
+                timeout=240,
+                messages=[{"role": "user", "content": prompt}],
+                response_format={"type": "json_object"},
+            )
+            raw = (resp.choices[0].message.content or "").strip()
+            break
+        except Exception as e:
+            last_err = e
+            if attempt == 0:
+                print(f"[wechat] retry after {type(e).__name__}")
+    if raw is None:
+        raise last_err
     m = re.search(r"\{.*\}", raw, re.DOTALL)
     if m:
         raw = m.group(0)
