@@ -210,17 +210,20 @@ def cmd_digest(collected: int = 0, analyzed: int = 0,
         core_trends=core_trends or [],
     )
     console.log(f"[green]Digest written:[/] {path}")
+    # 统一解析目标日期，email / wechat 与日报锁定同一天，避免跨天错位
+    from .digest import resolve_digest_date
+    target_date = resolve_digest_date()
     # Auto-generate HTML email version
     try:
         from .email_renderer import render_digest_as_email
-        html_path = render_digest_as_email()
+        html_path = render_digest_as_email(target_date)
         console.log(f"[green]Email HTML written:[/] {html_path}")
     except Exception as e:
         console.log(f"[yellow]Email HTML skipped:[/] {e}")
     # Auto-generate WeChat article
     try:
         from .wechat_publisher import generate_wechat_article
-        wx_html, wx_md = generate_wechat_article()
+        wx_html, wx_md = generate_wechat_article(date_str=target_date)
         console.log(f"[green]WeChat article:[/] {wx_html}")
     except Exception as e:
         console.log(f"[yellow]WeChat article skipped:[/] {e}")

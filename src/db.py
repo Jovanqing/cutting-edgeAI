@@ -271,6 +271,18 @@ def count_for_date(date_str: str) -> tuple[int, int]:
     return collected, analyzed
 
 
+def latest_analyzed_date():
+    """返回最近一个有已分析条目的自然日（YYYY-MM-DD）；无数据返回 None。
+
+    用于日报自动定位：当采集与出报跨天时，不再死绑'今天'导致空报。
+    """
+    with conn() as c:
+        r = c.execute(
+            "SELECT MAX(DATE(fetched_at)) FROM items WHERE final_score IS NOT NULL"
+        ).fetchone()
+        return r[0] if r and r[0] else None
+
+
 def top_stratified(min_score: int = 5, hours: int = 24,
                    quotas: dict[str, int] = None,
                    today_only: bool = False) -> list[dict]:

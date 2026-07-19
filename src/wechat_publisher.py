@@ -266,22 +266,24 @@ def generate_wechat_article(
     min_score: int = 6,
     hours: int = 48,
     model: str = "qwen3.7-max",
+    date_str: str = None,
 ) -> tuple[Path, Path]:
-    """生成今日微信公众号文章。
+    """生成微信公众号文章（默认自动定位到最近有数据的一天）。
 
     Returns:
         (html_path, md_path)
     """
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    today_str = datetime.now().strftime("%Y-%m-%d")
+    if not date_str:
+        from .digest import resolve_digest_date
+        date_str = resolve_digest_date()
+    today_str = date_str
 
-    # 1. 取今日精选 top 20
-    items = db.top_stratified(min_score=min_score, hours=hours,
-                              quotas={"reddit": 8, "youtube": 4, "rss": 30})
+    # 1. 取该日精选 top 20（按日期精确取数，与日报口径一致）
+    items = db.top_stratified_for_date(date_str, min_score=min_score,
+                                       quotas={"reddit": 8, "youtube": 4, "rss": 30})
     if not items:
-        items = db.top_recent(min_score=min_score, hours=hours, limit=20)
-    if not items:
-        raise ValueError("No items found for today")
+        raise ValueError(f"No items found for {date_str}")
 
     top_sorted = sorted(items, key=lambda x: -(x.get("final_score") or 0))
     headline_item = top_sorted[0]
@@ -355,7 +357,7 @@ def generate_wechat_article(
     article = json.loads(raw)
 
     # 4. 渲染输出
-    date_cn = datetime.now().strftime("%Y年%m月%d日")
+    date_cn = datetime.strptime(today_str, "%Y-%m-%d").strftime("%Y年%m月%d日")
     html_content = _build_wechat_html(article, cover_img=cover_img, date_str=date_cn)
     md_content = _build_article_md(article, date_str=today_str)
 

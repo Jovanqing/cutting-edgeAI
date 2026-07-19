@@ -918,6 +918,18 @@ def _render_research_ideas(ideas_result: Optional[dict]) -> str:
 
 # ─────────────────────────── orchestration ───────────────────────────
 
+def resolve_digest_date() -> str:
+    """日报目标日期：优先今天；今天无已分析数据则回退到最近有数据的自然日。
+
+    解决"采集与出报跨天"导致的空报（如 07-06 采集、07-07 出报）。
+    """
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    _, analyzed_today = db.count_for_date(today_str)
+    if analyzed_today > 0:
+        return today_str
+    return db.latest_analyzed_date() or today_str
+
+
 def render(
     min_score: int = 5,
     hours: int = 24,
@@ -926,17 +938,20 @@ def render(
     total_analyzed: int = 0,
     headline: str = "",
     core_trends: list[dict] = None,
+    date_str: Optional[str] = None,
 ) -> str:
-    # quotas 放宽：24h 内顶级 (≥8) 通常有 50-80 条，按主题分组消化得了
-    # 完全去掉 youtube/reddit 限制（让 Stratified 内部按 score 排序）
+    # 自动定位目标日期（今天无数据则用最近有数据的一天），按该日期精确取数
+    if date_str is None:
+        date_str = resolve_digest_date()
     quotas = {"reddit": 25, "youtube": 12, "rss": 80}
-    items = db.top_stratified(min_score=min_score, hours=hours, quotas=quotas, today_only=True)
-    if not items:
-        items = db.top_recent(min_score=min_score, hours=hours, limit=limit, today_only=True)
+    items = db.top_stratified_for_date(date_str, min_score=min_score, quotas=quotas)
 
-    today = datetime.now()
-    date_str = today.strftime("%Y-%m-%d")
-    weekday = WEEKDAYS[today.weekday()]
+    # 统计口径与展示数据严格对齐到同一天
+    total_collected, total_analyzed = db.count_for_date(date_str)
+
+    dt = datetime.strptime(date_str, "%Y-%m-%d")
+    today = dt
+    weekday = WEEKDAYS[dt.weekday()]
 
     # ── 排序确定 #1（头条） ──
     top_sorted = sorted(items, key=lambda x: -(x.get("final_score") or 0))
@@ -1010,8 +1025,8 @@ def render(
         _render_channel_section(items, shown_ids=shown_ids),
         _render_signal_scan(items, shown_ids),
         _render_research_ideas(research_ideas),
-        f"*🤖 AI Inspiration Pipeline v5.0 · {today.strftime('%Y-%m-%d %H:%M')} · "
-        f"powered by Qwen-Max + Qwen3.6-Plus*",
+        f"*🤖 AI Inspiration Pipeline v5.0 · 生成于 {datetime.now().strftime('%Y-%m-%d %H:%M')} · "
+        f"powered by Qwen3.7-Max + Qwen3.7-Plus*",
     ]
     return "\n".join(p for p in parts if p)
 
@@ -1120,8 +1135,9 @@ def write_today(
     core_trends: list[dict] = None,
 ) -> Path:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    today = datetime.now().strftime("%Y-%m-%d")
-    path = OUT_DIR / f"{today}.md"
+    # 文件名按"实际数据日期"命名，避免跨天出报时文件名与内容不符
+    date_str = resolve_digest_date()
+    path = OUT_DIR / f"{date_str}.md"
     path.write_text(
         render(
             min_score=min_score,
@@ -1131,6 +1147,7 @@ def write_today(
             total_analyzed=total_analyzed,
             headline=headline,
             core_trends=core_trends or [],
+            date_str=date_str,
         ),
         encoding="utf-8",
     )
@@ -1139,7 +1156,7 @@ def write_today(
         from .email_renderer import md_to_html_email
         html_path = path.with_suffix(".html")
         html_path.write_text(
-            md_to_html_email(path.read_text(encoding="utf-8"), date_str=today),
+            md_to_html_email(path.read_text(encoding="utf-8"), date_str=date_str),
             encoding="utf-8",
         )
         print(f"[digest] HTML version: {html_path}")
